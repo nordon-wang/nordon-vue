@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+
+<body>
+  <div id="app" style="color: aqua; margin: 20px;" class="content">  kong wen ben
+    <h1>hi {{ age }}</h1>
+    <p>{{ name }}</p>
+  </div>
+
+  <script src="/dist/umd/vue.js"></script>
+  <script>
+    const vm = new Vue({
+      el: '#app',
+      data() {
+        return {
+          name: 'nordon',
+          age: 18,
+          person: {
+            foo: 'a',
+            bat: '2'
+          },
+          arr: ['a', 'b', 'c', 'd']
+        }
+      },
+      computed: {
+
+      }
+    })
+
+    // vm._data.name = 'wangyao'
+    vm._data.arr.push({
+      name: 'a'
+    })
+    // vm._data.arr.unshift(6)
+    // console.log(vm);
+  </script>
+</body>
+
+</html>
