@@ -1,6 +1,7 @@
 import { initState } from "./state";
 import { compileToFunction } from "./compiler/index";
-import { mountComponent } from "./lifecycle";
+import { mountComponent, callHook } from "./lifecycle";
+import { mergeOptions } from "./utils/index";
 
 // 在原型上添加一个 init 方法
 export function initMixin(Vue) {
@@ -10,11 +11,23 @@ export function initMixin(Vue) {
 
     // 数据劫持
     const vm = this; // Vue 中使用 this.$options 指代的就是用户传递的属性
-    vm.$options = options;
+    // vm.$options = options;
+    /**
+     * 合并
+     *   将用户传递的和全局的 进行合并
+     *   不能直接写 Vue.options 应该写 vm.constructor.options
+     *      因为如果写成Vue.options， 会导致后续的options指向不对
+     *      Foo extend Vue
+     *      const foo = new Foo()
+     *      foo._init 的时候 options应该是要指向 Foo, 而不是 Vue
+     */
+    vm.$options = mergeOptions(vm.constructor.options, options);
 
+    callHook(vm, "beforeCreate");
     // 初始化状态
     initState(vm); // 分割代码
 
+    callHook(vm, "created");
     // 如果传入了 el 属性， 需要将页面渲染出来
     // 传入 el ， 实现挂载流程
     if (vm.$options.el) {
@@ -48,3 +61,5 @@ export function initMixin(Vue) {
     mountComponent(vm, el);
   };
 }
+
+

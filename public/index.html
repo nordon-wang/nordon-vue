@@ -8,9 +8,10 @@
 </head>
 
 <body>
-  <div id="app" style="color: aqua; margin: 20px;" class="content">  kong wen ben
+  <div id="app" style="color: aqua; margin: 20px;" class="content"> kong wen ben
     <h1>hi {{ age }}</h1>
     <p>my name is : {{ name }} </p>
+    <h2>{{person}}</h2>
   </div>
 
   <script src="/dist/umd/vue.js"></script>
@@ -30,15 +31,23 @@
       },
       computed: {
 
-      }
+      },
+      beforeCreate() {
+        console.log('组件的...')
+      },
     })
 
     // vm._data.name = 'wangyao'
-    vm._data.arr.push({
-      name: 'a'
-    })
+    // vm._data.arr.push({
+    //   name: 'a'
+    // })
     // vm._data.arr.unshift(6)
     // console.log(vm);
+      
+    // setTimeout(() => {
+    //   vm.age = 122
+    //   vm._update(vm._render())
+    // }, 2000);
   </script>
 </body>
 

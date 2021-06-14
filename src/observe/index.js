@@ -47,6 +47,8 @@ function defineReactive(data, key, value) {
   observe(value); //  递归
 
   Object.defineProperty(data, key, {
+    configurable: true,
+    enumerable: true,
     get() {
       return value;
     },
@@ -55,7 +57,7 @@ function defineReactive(data, key, value) {
         return;
       }
 
-      console.log("set...");
+      // console.log("set...");
       observe(newValue); // 继续劫持用户设置的值， 可能会设置新的对象
       value = newValue;
     },

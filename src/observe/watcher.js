@@ -12,8 +12,6 @@ class Watcher {
   get() {
     this.getter()
   }
-
-
 }
 
 

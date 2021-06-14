@@ -14,6 +14,9 @@ export function patch(oldVnode, vnode) {
     let el = createEle(vnode);
     parentEle.insertBefore(el, oldEle.nextSibling);
     parentEle.removeChild(oldEle);
+
+    // 需要将渲染好的结果 返回
+    return el
   }
 
   // 递归创建真实节点 替换老的节点
