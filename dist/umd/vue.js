@@ -285,16 +285,75 @@
       if (inserted) {
         // 将新增属性 继续观测
         ob.observeArray(inserted);
-      }
+      } // 如果调用的是 数组的一些方法， 会通知 watcher 做更新操作
 
+
+      ob.dep.notify();
       return result;
     };
   });
+
+  var id$1 = 0;
+  /** 
+   * Watcher 和 Dep 是多对多的关系
+  */
+
+  var Dep = /*#__PURE__*/function () {
+    function Dep() {
+      _classCallCheck(this, Dep);
+
+      this.id = id$1++;
+      this.subs = []; // msg : [watcher, watcher]
+    }
+
+    _createClass(Dep, [{
+      key: "depend",
+      value: function depend() {
+        // this.subs.push(Dep.target)
+        // 让这个 watcher 记住当前的 dep
+        // 如果 watcher 没有存过 dep， dep 肯定不能村过watcher
+        Dep.target.addDep(this);
+      } // 通知 watcher 更新
+
+    }, {
+      key: "notify",
+      value: function notify() {
+        this.subs.forEach(function (watcher) {
+          return watcher.update();
+        });
+      }
+    }, {
+      key: "addSub",
+      value: function addSub(watcher) {
+        this.subs.push(watcher);
+      }
+    }]);
+
+    return Dep;
+  }(); // 将watcher 保留起来
+  var stack = [];
+  /**
+   * 存储 target
+   */
+
+  function pushTarget(watcher) {
+    Dep.target = watcher;
+    stack.push(watcher);
+  }
+  /**
+   * 移除 target
+   */
+
+  function popTarget() {
+    stack.pop();
+    Dep.target = stack[stack.length - 1];
+  }
 
   var Observer = /*#__PURE__*/function () {
     function Observer(value) {
       _classCallCheck(this, Observer);
 
+      this.dep = new Dep(); // 这里的 dep 是给数组使用的
       // 给每一个监控过的对象都增加一个 __ob__ 属性
       // value.__ob__  = this // 存在循环调用的风险
       // Object.defineProperty(value, '__ob__', {
@@ -302,7 +361,8 @@
       //   configurable: false,
       //   value: this
       // })
-      def(value, '__ob__', this); // 如果是数组的话 并不会对索引进行观测， 因为会导致性能问题
+
+      def(value, "__ob__", this); // 如果是数组的话 并不会对索引进行观测， 因为会导致性能问题
       // 前端开发中很少 去直接操作索引
 
       if (Array.isArray(value)) {
@@ -340,12 +400,42 @@
   }();
 
   function defineReactive(data, key, value) {
-    observe(value); //  递归
+    // 这个dep 是给对象使用的， 数组是不能使用的
+    var dep = new Dep();
+    /**
+     * value 可能是数组 也可能是对象
+     * 返回的结果是 observe 实例， 当前这个 value 对应的 observe
+     */
+
+    var childOb = observe(value); //  递归
 
     Object.defineProperty(data, key, {
       configurable: true,
       enumerable: true,
       get: function get() {
+        // console.log("get....", value);
+
+        /**
+         * 每个属性 都对应着 自己的 watcher,
+         * 需要给每个属性都增加 watcher
+         * msg: [watcher, watcher]
+         * foo: [watcher]
+         */
+        if (Dep.target) {
+          // 有值  代表渲染watcher 已经放上去了
+          // 如果当前存在 watcher， 将watcher 和  dep 建立一个双向的关系
+          dep.depend(); // 我要将 watcher 存起来
+
+          if (childOb) {
+            // 收集了数组的相关依赖
+            childOb.dep.depend(); // 如果数组中 还有数组, 需要将数组中的每一项再收集一下依赖
+
+            if (Array.isArray(value)) {
+              dependArray(value);
+            }
+          }
+        }
+
         return value;
       },
       set: function set(newValue) {
@@ -357,8 +447,25 @@
         observe(newValue); // 继续劫持用户设置的值， 可能会设置新的对象
 
         value = newValue;
+        dep.notify(); // 通知依赖的 watcher 进行更新操作
       }
     });
+  }
+  /** 
+   * 多维数组 收集依赖
+  */
+
+
+  function dependArray(val) {
+    for (var i = 0; i < val.length; i++) {
+      var current = val[i]; // 将数组中的每一个都取出来， 数据变化后 更新视图
+
+      current.__ob__ && current.__ob__.dep.depend();
+
+      if (Array.isArray(current)) {
+        dependArray(current);
+      }
+    }
   } // 把 data 中的数据 都使用 Object.defineProperty 重新定义
 
 
@@ -653,6 +760,8 @@
     return renderFn;
   }
 
+  var id = 0;
+
   var Watcher = /*#__PURE__*/function () {
     function Watcher(vm, exprOrFn, callback, options) {
       _classCallCheck(this, Watcher);
@@ -660,15 +769,40 @@
       this.vm = vm;
       this.callback = callback;
       this.options = options;
+      this.id = id++;
       this.getter = exprOrFn; // 将内部传过来的回调函数 放到 getter 属性上
 
-      this.get();
+      this.depsID = new Set();
+      this.deps = [];
+      this.get(); // 调用get方法， 会让渲染 watcher 执行
     }
 
     _createClass(Watcher, [{
       key: "get",
       value: function get() {
-        this.getter();
+        pushTarget(this); // 存储watcher， Dep.target
+        // console.log('watcher get ===>',this);
+
+        this.getter(); // 渲染 watcher 执行
+
+        popTarget(); // 移除 watcher
+      }
+    }, {
+      key: "update",
+      value: function update() {
+        // watcher 里不能放重复的 dep， dep里也不能放重复的 watcher
+        this.get();
+      }
+    }, {
+      key: "addDep",
+      value: function addDep(dep) {
+        var id = dep.id;
+
+        if (!this.depsID.has(id)) {
+          this.depsID.add(id);
+          this.deps.push(dep);
+          dep.addSub(this);
+        }
       }
     }]);
 

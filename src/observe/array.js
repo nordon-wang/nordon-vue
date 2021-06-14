@@ -40,6 +40,8 @@ methods.forEach((method) => {
       ob.observeArray(inserted)
     }
 
+    // 如果调用的是 数组的一些方法， 会通知 watcher 做更新操作
+    ob.dep.notify()
     return result
   };
 });

@@ -12,6 +12,8 @@
     <h1>hi {{ age }}</h1>
     <p>my name is : {{ name }} </p>
     <h2>{{person}}</h2>
+    <h2>{{ arr }}</h2>
+    <h2>{{ moreArr[0] }}</h2>
   </div>
 
   <script src="/dist/umd/vue.js"></script>
@@ -26,7 +28,8 @@
             foo: 'a',
             bat: '2'
           },
-          arr: ['a', 'b', 'c', 'd']
+          arr: ['a', 'b', 'c', 'd'],
+          moreArr: [['1', '2']]
         }
       },
       computed: {
@@ -43,11 +46,13 @@
     // })
     // vm._data.arr.unshift(6)
     // console.log(vm);
-      
-    // setTimeout(() => {
-    //   vm.age = 122
-    //   vm._update(vm._render())
-    // }, 2000);
+
+    setTimeout(() => {
+      vm.age = 122
+      vm.arr.push('aaa', 'bbb')
+      vm.moreArr[0].push('aaa', 'bbb')
+      // vm._update(vm._render())
+    }, 2000);
   </script>
 </body>
 
