@@ -760,6 +760,55 @@
     return renderFn;
   }
 
+  var callbacks = [];
+  var waiting = false; // 防止多次调用nextTick
+
+  function flushCallback() {
+    callbacks.forEach(function (cb) {
+      return cb();
+    });
+    waiting = false;
+    callbacks = [];
+  }
+
+  function nextTick(cb) {
+    // 多次调用 textTick 如果没有刷新的时候 就先把它放到数组中
+    // 刷新后 更改waiting
+    callbacks.push(cb);
+
+    if (!waiting) {
+      setTimeout(flushCallback, 0);
+      waiting = true;
+    }
+  }
+
+  /**
+   * 批量更新
+   */
+
+  var queue = [];
+  var has = {};
+
+  function flushSchedularQueue() {
+    queue.forEach(function (watcher) {
+      return watcher.run();
+    }); // 下一次继续使用
+
+    queue = [];
+    has = {};
+  }
+
+  function queueWatcher(watcher) {
+    var id = watcher.id; // 如果不存在 放到队列中
+
+    if (!has[id]) {
+      queue.push(watcher);
+      has[id] = true; // textTick ==> promise / mutationObserver / setImmediate / setTimeout
+
+      nextTick(flushSchedularQueue); // setTimeout(flushSchedularQueue, 0);
+    }
+  }
+
   var id = 0;
 
   var Watcher = /*#__PURE__*/function () {
@@ -790,7 +839,14 @@
     }, {
       key: "update",
       value: function update() {
-        // watcher 里不能放重复的 dep， dep里也不能放重复的 watcher
+        // 等待着 批量更新， 因为每次调用update的是时候 都放入了watcher
+        // console.log("111", this.id);
+        queueWatcher(this); // watcher 里不能放重复的 dep， dep里也不能放重复的 watcher
+        // this.get();
+      }
+    }, {
+      key: "run",
+      value: function run() {
         this.get();
       }
     }, {
@@ -943,6 +999,8 @@
 
     var updateComponent = function updateComponent() {
       // vm._render() 返回的是虚拟DOM
+      console.log('updateComponent');
+
       vm._update(vm._render());
     }; // 渲染 watcher， 每一个组件都有一个watcher
     // true 表示他是一个渲染watcher
@@ -1028,6 +1086,8 @@
 
       mountComponent(vm, el);
     };
+
+    Vue.prototype.$nextTick = nextTick;
   }
 
   function renderMixin(Vue) {
@@ -1067,17 +1127,14 @@
 
     Vue.mixin({
       a: 1,
-      beforeCreate: function beforeCreate() {
-        console.log('mixin 1');
+      beforeCreate: function beforeCreate() {// console.log('mixin 1');
       }
     });
     Vue.mixin({
       b: 2,
-      beforeCreate: function beforeCreate() {
-        console.log('mixin 2');
+      beforeCreate: function beforeCreate() {// console.log('mixin 2');
       }
-    });
-    console.log(Vue.options);
+    }); // console.log(Vue.options);
   }
   /**
    * 生命周期的合并策略

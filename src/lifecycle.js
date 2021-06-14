@@ -22,6 +22,8 @@ export function mountComponent(vm, el) {
   // 无论渲染还是更新 都会执行
   let updateComponent = () => {
     // vm._render() 返回的是虚拟DOM
+    console.log('updateComponent');
+    
     vm._update(vm._render());
   };
 

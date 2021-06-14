@@ -36,7 +36,7 @@
 
       },
       beforeCreate() {
-        console.log('组件的...')
+        // console.log('组件的...')
       },
     })
 
@@ -48,11 +48,19 @@
     // console.log(vm);
 
     setTimeout(() => {
-      vm.age = 122
-      vm.arr.push('aaa', 'bbb')
-      vm.moreArr[0].push('aaa', 'bbb')
+      // vm.age = 122
+      // vm.arr.push('aaa', 'bbb')
+      vm.arr.push('aaa')
+      vm.arr.push('bbb')
+      vm.arr.push('ccc')
+      vm.arr.push('ddd')
+      // vm.moreArr[0].push('aaa', 'bbb')
       // vm._update(vm._render())
-    }, 2000);
+
+      vm.$nextTick(() => {
+        console.log(vm.arr);
+      })
+    }, 1000);
   </script>
 </body>
 

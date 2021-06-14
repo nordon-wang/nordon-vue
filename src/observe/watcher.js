@@ -1,5 +1,5 @@
 import { pushTarget, popTarget } from "./dep.js";
-
+import { queueWatcher } from "./schedular";
 let id = 0;
 class Watcher {
   constructor(vm, exprOrFn, callback, options) {
@@ -22,7 +22,15 @@ class Watcher {
   }
 
   update() {
+    // 等待着 批量更新， 因为每次调用update的是时候 都放入了watcher
+    // console.log("111", this.id);
+    queueWatcher(this);
+
     // watcher 里不能放重复的 dep， dep里也不能放重复的 watcher
+    // this.get();
+  }
+
+  run() {
     this.get();
   }
 
@@ -32,7 +40,7 @@ class Watcher {
     if (!this.depsID.has(id)) {
       this.depsID.add(id);
       this.deps.push(dep);
-      dep.addSub(this)
+      dep.addSub(this);
     }
   }
 }

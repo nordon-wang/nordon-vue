@@ -12,19 +12,18 @@ export function initGlobalAPI(Vue) {
   Vue.mixin({
     a: 1,
     beforeCreate() {
-      console.log('mixin 1');
+      // console.log('mixin 1');
     },
   })
   
   Vue.mixin({
     b: 2,
     beforeCreate() {
-      console.log('mixin 2');
+      // console.log('mixin 2');
     },
   })
 
-  console.log(Vue.options);
-  
+  // console.log(Vue.options);
 }
 
 /**
