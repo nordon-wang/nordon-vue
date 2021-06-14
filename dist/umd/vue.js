@@ -299,64 +299,64 @@
    * 虚拟DOM： 使用对象来描述 DOM节点的
    */
 
-  var root = null; //  ast树的树根
-
-  var currentParent = null; // 标识当前的parent
-
-  var stack = [];
-  var ELEMENT_TYPE = 1;
-  var TEXT_TYPE = 3;
-
-  function createASTElement(tagName, attrs) {
-    return {
-      tag: tagName,
-      type: ELEMENT_TYPE,
-      children: [],
-      attrs: attrs,
-      parent: null
-    };
-  }
-
-  function start(tagName, attrs) {
-    // console.log("开始标签", tagName, "属性", attrs);
-    // 遇到开始标签 创建一个 ast 元素
-    var element = createASTElement(tagName, attrs);
-
-    if (!root) {
-      root = element;
-    } // 把当前元素标记为 parent
-
-
-    currentParent = element;
-    stack.push(element); // 将开始标签 存放到栈中
-  }
-
-  function chars(text) {
-    // console.log("文本是", text);
-    text = text.replace(/\s/g, '');
-
-    if (text) {
-      currentParent.children.push({
-        text: text,
-        type: TEXT_TYPE
-      });
-    }
-  }
-
-  function end(tagName) {
-    // console.log("结束", tagName);
-    var element = stack.pop(); // 标识当前这个元素是属于parent的children
-
-    currentParent = stack[stack.length - 1];
-
-    if (currentParent) {
-      element.parent = currentParent;
-      currentParent.children.push(element); // 实现一个树的父子关系
-    }
-  }
-
   function parseHTML(html) {
-    // 不停的解析HTML字符串
+    var root = null; //  ast树的树根
+
+    var currentParent = null; // 标识当前的parent
+
+    var stack = [];
+    var ELEMENT_TYPE = 1;
+    var TEXT_TYPE = 3;
+
+    function createASTElement(tagName, attrs) {
+      return {
+        tag: tagName,
+        type: ELEMENT_TYPE,
+        children: [],
+        attrs: attrs,
+        parent: null
+      };
+    }
+
+    function start(tagName, attrs) {
+      // console.log("开始标签", tagName, "属性", attrs);
+      // 遇到开始标签 创建一个 ast 元素
+      var element = createASTElement(tagName, attrs);
+
+      if (!root) {
+        root = element;
+      } // 把当前元素标记为 parent
+
+
+      currentParent = element;
+      stack.push(element); // 将开始标签 存放到栈中
+    }
+
+    function chars(text) {
+      // console.log("文本是", text);
+      text = text.replace(/\s/g, "");
+
+      if (text) {
+        currentParent.children.push({
+          text: text,
+          type: TEXT_TYPE
+        });
+      }
+    }
+
+    function end(tagName) {
+      // console.log("结束", tagName);
+      var element = stack.pop(); // 标识当前这个元素是属于parent的children
+
+      currentParent = stack[stack.length - 1];
+
+      if (currentParent) {
+        element.parent = currentParent;
+        currentParent.children.push(element); // 实现一个树的父子关系
+      }
+    } // 不停的解析HTML字符串
+
+
     while (html) {
       var textEnd = html.indexOf("<");
 
